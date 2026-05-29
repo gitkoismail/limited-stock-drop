@@ -8,7 +8,7 @@ The goal of this project is to safely handle concurrent product reservations wit
 
 Frontend: TODO
 Backend API: TODO
-GitHub Repository: TODO
+GitHub Repository: GitHub Repository: https://github.com/gitkoismail/limited-stock-drop
 Loom Video: TODO
 
 ---
