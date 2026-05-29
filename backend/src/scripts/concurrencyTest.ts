@@ -78,7 +78,18 @@ async function sendReserveRequest(userId: string, productId: string) {
     }),
   });
 
-  const body = (await response.json()) as ReserveResponse;
+  const rawBody = await response.text();
+
+  let body: ReserveResponse;
+
+  try {
+    body = JSON.parse(rawBody) as ReserveResponse;
+  } catch {
+    body = {
+      success: false,
+      message: rawBody || `HTTP ${response.status}`,
+    };
+  }
 
   return {
     status: response.status,

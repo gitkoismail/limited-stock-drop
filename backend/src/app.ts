@@ -27,9 +27,13 @@ app.use(express.json());
 app.use(
   rateLimit({
     windowMs: 60 * 1000,
-    limit: 100,
+    limit: env.nodeEnv === "production" ? 100 : 1000,
     standardHeaders: true,
     legacyHeaders: false,
+    message: {
+      success: false,
+      message: "Too many requests",
+    },
   })
 );
 
