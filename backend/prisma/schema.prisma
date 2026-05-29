@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ReservationStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum InventoryLogReason {
+  RESERVATION_CREATED
+  RESERVATION_EXPIRED
+  CHECKOUT_COMPLETED
+  MANUAL_ADJUSTMENT
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  reservations Reservation[]
+  orders       Order[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Product {
+  id            String         @id @default(uuid())
+  name          String
+  description   String
+  priceInCents  Int
+  stock         Int
+  imageUrl      String?
+  reservations  Reservation[]
+  orders        Order[]
+  inventoryLogs InventoryLog[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([stock])
+  @@index([createdAt])
+}
+
+model Reservation {
+  id                   String            @id @default(uuid())
+  userId               String
+  productId            String
+  quantity             Int
+  status               ReservationStatus @default(ACTIVE)
+  expiresAt            DateTime
+  createdAt            DateTime          @default(now())
+  completedAt          DateTime?
+  activeReservationKey String?           @unique
+
+  user                 User              @relation(fields: [userId], references: [id])
+  product              Product           @relation(fields: [productId], references: [id])
+  order                Order?
+  inventoryLogs        InventoryLog[]
+
+  @@index([status])
+  @@index([expiresAt])
+  @@index([userId])
+  @@index([productId])
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  userId        String
+  productId     String
+  reservationId String      @unique
+  quantity      Int
+  totalInCents  Int
+  createdAt     DateTime    @default(now())
+
+  user          User        @relation(fields: [userId], references: [id])
+  product       Product     @relation(fields: [productId], references: [id])
+  reservation   Reservation @relation(fields: [reservationId], references: [id])
+
+  @@index([userId])
+  @@index([productId])
+  @@index([createdAt])
+}
+
+model InventoryLog {
+  id            String              @id @default(uuid())
+  productId     String
+  reservationId String?
+  change        Int
+  reason        InventoryLogReason
+  createdAt     DateTime            @default(now())
+
+  product       Product             @relation(fields: [productId], references: [id])
+  reservation   Reservation?        @relation(fields: [reservationId], references: [id])
+
+  @@index([productId])
+  @@index([reservationId])
+  @@index([createdAt])
+}
+
