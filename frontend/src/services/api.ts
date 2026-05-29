@@ -4,16 +4,19 @@ import type {
   ReservationResponse,
 } from "../types/reservation";
 
-const API_URL = import.meta.env.VITE_API_URL;
-console.log("API_URL:", API_URL);
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 type ApiResponse<T> = {
   success: boolean;
   message?: string;
-  data: T;
+  data?: T;
+  errors?: unknown;
 };
 
-async function request<T>(url: string, options?: RequestInit): Promise<T> {
+export async function request<T>(
+  url: string,
+  options?: RequestInit
+): Promise<T> {
   const response = await fetch(`${API_URL}${url}`, {
     headers: {
       "Content-Type": "application/json",
@@ -26,6 +29,10 @@ async function request<T>(url: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok || !body.success) {
     throw new Error(body.message || "Something went wrong");
+  }
+
+  if (!body.data) {
+    throw new Error("API response does not include data");
   }
 
   return body.data;
@@ -54,4 +61,3 @@ export async function checkoutReservation(reservationId: string) {
     }),
   });
 }
-
