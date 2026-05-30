@@ -95,10 +95,12 @@ export function LimitedDropPage() {
             <p className="error">Your reservation has expired.</p>
           )}
 
-          {order && !hasActiveReservation && (
-            <p className="success">
-              Checkout completed. Order ID: {order.id}
-            </p>
+          {order && (
+            <div className="status-card success-card">
+              <strong>Order confirmed!</strong>
+              <span>Your checkout was completed successfully.</span>
+              <small>Order #{order.id.slice(0, 8).toUpperCase()}</small>
+            </div>
           )}
 
           <div className="actions">
