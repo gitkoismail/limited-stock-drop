@@ -6,8 +6,8 @@ The goal of this project is to safely handle concurrent product reservations wit
 
 ## Live Demo
 
-Frontend: TODO
-Backend API: TODO
+Frontend: https://limited-stock-drop-webb.pxxl.click
+Backend API: https://limited-stock-drop-api.pxxl.click
 GitHub Repository: GitHub Repository: https://github.com/gitkoismail/limited-stock-drop
 Loom Video: TODO
 
@@ -392,28 +392,90 @@ PASS: Overselling prevented successfully.
 
 ## Architecture Overview
 
-```txt
-React Frontend
-    |
-    | HTTP requests
-    v
-Express API
-    |
-    | Zod validation
-    v
-Controller Layer
-    |
-    | business flow
-    v
-Service Layer
-    |
-    | Prisma transaction
-    v
-PostgreSQL Database
-    |
-    | stock, reservations, orders, logs
+```mermaid
+flowchart TD
+  A[React + TypeScript Frontend] -->|HTTP requests| B[Express API]
+  B --> C[Zod Validation]
+  C --> D[Controller Layer]
+  D --> E[Service Layer]
+  E -->|Prisma Transaction| F[(Supabase PostgreSQL)]
+
+  F --> G[Products]
+  F --> H[Reservations]
+  F --> I[Orders]
+  F --> J[Inventory Logs]
+
+  K[Expiration Background Job] -->|Find expired active reservations| H
+  K -->|Restore reserved stock| G
+  K -->|Create inventory log| J
+
+  L[Concurrency Test] -->|100 parallel reserve requests| B
+  E -->|Atomic stock decrement| G
 ```
 
-The reservation flow is protected by transaction-based atomic stock updates.
+The reservation flow is protected by transaction-based atomic stock updates. This prevents overselling when many users try to reserve the same limited-stock product at the same time.
 
-The expiration job restores stock for reservations that were not checked out within 5 minutes.
+Expired reservations are processed by a scheduled backend job. If a reservation is not checked out within 5 minutes, the job marks it as expired, restores the reserved stock, and writes an inventory log. Stock restoration may happen shortly after the countdown reaches zero depending on the job interval.
+
+## Database Relationship Diagram
+
+```mermaid
+erDiagram
+  User ||--o{ Reservation : creates
+  User ||--o{ Order : places
+  Product ||--o{ Reservation : reserved_for
+  Product ||--o{ Order : ordered_as
+  Product ||--o{ InventoryLog : has
+  Reservation ||--o| Order : completes_into
+  Reservation ||--o{ InventoryLog : generates
+
+  User {
+    string id
+    string email
+    string name
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Product {
+    string id
+    string name
+    string description
+    int priceInCents
+    int stock
+    string imageUrl
+    datetime createdAt
+    datetime updatedAt
+  }
+
+  Reservation {
+    string id
+    string userId
+    string productId
+    int quantity
+    string status
+    datetime expiresAt
+    datetime completedAt
+    string activeReservationKey
+  }
+
+  Order {
+    string id
+    string userId
+    string productId
+    string reservationId
+    int quantity
+    int totalInCents
+    datetime createdAt
+  }
+
+  InventoryLog {
+    string id
+    string productId
+    string reservationId
+    int change
+    string reason
+    datetime createdAt
+  }
+```
+
