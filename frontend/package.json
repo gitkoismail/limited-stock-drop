@@ -8,12 +8,14 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "serve -s dist -l tcp://0.0.0.0:8080",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.2.6",
-    "react-dom": "^19.2.6"
+    "react-dom": "^19.2.6",
+    "serve": "^14.2.6"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
