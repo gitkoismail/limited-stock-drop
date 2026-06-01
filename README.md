@@ -9,7 +9,7 @@ The goal of this project is to safely handle concurrent product reservations wit
 Frontend: https://limited-stock-drop-webb.pxxl.click
 Backend API: https://limited-stock-drop-api.pxxl.click
 GitHub Repository: GitHub Repository: https://github.com/gitkoismail/limited-stock-drop
-Loom Video: TODO
+Loom Video: (https://www.loom.com/share/44370191a2154cb88ee891881b7a7ca9)
 
 ---
 
